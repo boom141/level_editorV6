@@ -2,7 +2,6 @@ import pygame, sys, os, random, math
 from pygame.locals import*
 pygame.init()
 
-
 from data.core_functions.clip import*
 
 pygame.display.set_caption("SPRITESHEET GENERATOR")
@@ -11,7 +10,7 @@ FPS = pygame.time.Clock()
 SCALE = 2
 BLACK = (0,0,0,255)
 
-image_path = "./data/images/sample.png"
+image_path = "./data/images/sketch.png"
 SCREEN = pygame.display.set_mode((200,200), 0, 32)
 
 session_image = pygame.image.load(image_path).convert()
@@ -25,7 +24,7 @@ group_tileset = False
 
 initial_point = None
 current_selection = None
-border = None
+points = None
 
 selection_list = []
 surface_clips = []
@@ -49,7 +48,7 @@ def generate_border(image,initial_point,offset=0):
 	image_edges = []
 	borders = []
 
-		#locating edge
+	#locating edge
 	for direction in mapping_direction:
 		while 1:
 			pixel_color = surface_copy.get_at(origin)
@@ -63,18 +62,41 @@ def generate_border(image,initial_point,offset=0):
 				origin[0] = initial_point[0]
 				origin[1] = initial_point[1]
 				break
-			
-	# point_x = [border[0] + 1 for border in borders]
-	# point_y = [border[1] + 1 for border in borders]
 	
-	# x = min(point_x) 
-	# y = min(point_y) 
+	#topleft/bottomleft
+	left_edge = image_edges[0].copy()
+	for i in [1,-2]:
+		while 1:
+			pixel_color = surface_copy.get_at(left_edge)
 
-	# width = (max(point_x) - x) 
-	# height = (max(point_y) - y) 
+			if pixel_color == BLACK:
+				borders.append(pygame.Rect(left_edge[0] - 1,left_edge[1],SCALE,SCALE))
+				left_edge = image_edges[0].copy()
+				break
+			else:
+				left_edge[1] = left_edge[1] + i
+	
+	#topright/bottomright
+	right_edge = image_edges[1].copy()
+	for i in [1,-2]:
+		while 1:
+			pixel_color = surface_copy.get_at(right_edge)
 
-	# return pygame.Rect(x,y,width,height)
-	return image_edges
+			if pixel_color == BLACK:
+				borders.append(pygame.Rect(right_edge[0] + 1,right_edge[1],SCALE,SCALE))
+				right_edge = image_edges[1].copy()
+				break
+			else:
+				right_edge[1] = right_edge[1] + i
+	
+	x = borders[0].x
+	y = min([borders[1].y,borders[3].y]) 
+
+	width = abs(borders[1].topleft[0] - borders[3].topright[0])
+	height = abs(max([borders[0].bottomleft[1],borders[2].bottomright[1]]) - y)
+
+	return pygame.Rect(x,y,width,height),borders
+
 
 while 1:
 	# mouse fucntions
@@ -92,12 +114,13 @@ while 1:
 	
 	if mouse_clicked[0] and click_once:
 		click_once = False
-		border = generate_border(image,[mx,my])
-		# selection_list.append(border)
+		border,points = generate_border(image,[mx,my])
+		selection_list.append(border)
 	
-	if border:
-		for data in border:
-			pygame.draw.rect(image, (255,0,0), (data[0],data[1],SCALE,SCALE))
+	#lcoating points
+	# if points:
+	# 	for data in points:
+	# 		pygame.draw.rect(image, (255,0,0), data)
 
 	#rectangular selector
 	if mouse_clicked[2] and pygame.MOUSEMOTION:
@@ -138,8 +161,6 @@ while 1:
 		new_filename = input("[ENTER FILENAME] : ")
 		pygame.image.save(group_surface, f"./data/images/{new_filename}.png")
 		print("[TILESET SAVED!]")
-
-
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
