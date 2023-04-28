@@ -1,3 +1,14 @@
+"""
+TILESET GENERATOR V1
+
+key bindings*
+	r:switch mode:
+	g:group selection list:
+	z:undo selection:
+	s:save seletion list:
+
+"""
+
 import pygame, sys, os, random, math
 from pygame.locals import*
 pygame.init()
@@ -50,7 +61,7 @@ def generate_border(image,initial_point,offset=0):
 	image_edges = []
 	borders = []
 
-	#locating edge
+	#locating edges
 	for direction in mapping_direction:
 		while 1:
 			pixel_color = surface_copy.get_at(origin)
@@ -91,14 +102,13 @@ def generate_border(image,initial_point,offset=0):
 			else:
 				right_edge[1] = right_edge[1] + i
 	
+	#calculating dimentions
 	x = borders[0].x
 	y = min([borders[1].y,borders[3].y]) 
-
 	width = abs(borders[1].topleft[0] - borders[3].topright[0])
 	height = abs(max([borders[0].bottomleft[1],borders[2].bottomright[1]]) - y)
 
 	return pygame.Rect(x,y,width,height),borders
-
 
 while 1:
 	# mouse fucntions
@@ -124,6 +134,7 @@ while 1:
 		# if points:
 		# 	for data in points:
 		# 		pygame.draw.rect(image, (255,0,0), data)
+		
 	else:
 		#rectangular selector
 		if mouse_clicked[0] and pygame.MOUSEMOTION:
