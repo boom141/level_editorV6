@@ -21,6 +21,8 @@ image = session_image.copy()
 
 click_once = True
 group_tileset = False
+free_selection_mode = False
+
 
 initial_point = None
 current_selection = None
@@ -111,31 +113,36 @@ while 1:
 	mouse_clicked = pygame.mouse.get_pressed()
 	keys = pygame.key.get_pressed()
 
-	
-	if mouse_clicked[0] and click_once:
-		click_once = False
-		border,points = generate_border(image,[mx,my])
-		selection_list.append(border)
-	
-	#lcoating points
-	# if points:
-	# 	for data in points:
-	# 		pygame.draw.rect(image, (255,0,0), data)
-
-	#rectangular selector
-	if mouse_clicked[2] and pygame.MOUSEMOTION:
-		if click_once:
+	if free_selection_mode == False:
+		#auto-select rectangular sprite
+		if mouse_clicked[0] and click_once:
 			click_once = False
-			initial_point = [mx,my]
+			border,points = generate_border(image,[mx,my])
+			selection_list.append(border)
+		
+		#locating points
+		# if points:
+		# 	for data in points:
+		# 		pygame.draw.rect(image, (255,0,0), data)
+	else:
+		#rectangular selector
+		if mouse_clicked[0] and pygame.MOUSEMOTION:
+			if click_once:
+				click_once = False
+				initial_point = [mx,my]
 
-		scale_width = mx-initial_point[0]
-		scale_height = my-initial_point[1]
-		current_selection = pygame.Rect(initial_point[0],initial_point[1],scale_width,scale_height)
-		pygame.draw.rect(image, (255,0,0), current_selection, 1)
+			scale_width = mx-initial_point[0]
+			scale_height = my-initial_point[1]
+			current_selection = pygame.Rect(initial_point[0],initial_point[1],scale_width,scale_height)
+			pygame.draw.rect(image, (255,0,0), current_selection, 1)
 
 	if selection_list and group_tileset == False:
 		for selection in selection_list:
 			pygame.draw.rect(image, (0,255,0), selection, 1)
+
+	if keys[K_r] and click_once:
+		click_once = False
+		free_selection_mode = not free_selection_mode
 
 	if keys[K_z] and click_once:
 		click_once = False
@@ -169,6 +176,8 @@ while 1:
 
 		if event.type == pygame.MOUSEBUTTONUP:
 			click_once = True
+			if free_selection_mode:
+				selection_list.append(current_selection)
 
 		if event.type == pygame.KEYUP:
 			click_once = True
